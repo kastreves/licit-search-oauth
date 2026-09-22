@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Licit Search — Conexão Mercado Livre</title>
+  <style>
+    :root { color-scheme: dark; --gold:#e9b931; --bg:#151719; --panel:#23262a; --muted:#aeb4bd; }
+    * { box-sizing: border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px; font-family:Inter,Segoe UI,Arial,sans-serif; background:radial-gradient(circle at 50% 0,#303238 0,#151719 52%); color:#fff; }
+    main { width:min(620px,100%); padding:38px; border:1px solid #41454c; border-radius:20px; background:rgba(35,38,42,.96); box-shadow:0 24px 70px #0008; text-align:center; }
+    .brand { display:flex; justify-content:center; align-items:center; gap:14px; margin-bottom:26px; }
+    .mark { position:relative; width:54px; height:54px; border-left:8px solid var(--gold); border-bottom:8px solid var(--gold); border-radius:3px; }
+    .mark::before { content:""; position:absolute; width:25px; height:25px; left:11px; top:0; border:7px solid var(--gold); border-radius:50%; }
+    .mark::after { content:""; position:absolute; width:22px; height:7px; left:34px; top:32px; border-radius:5px; background:var(--gold); transform:rotate(45deg); }
+    h1 { margin:0; font-size:30px; letter-spacing:-.7px; }
+    h1 span { color:var(--gold); }
+    h2 { margin:0 0 12px; font-size:22px; }
+    p { margin:8px 0; color:var(--muted); line-height:1.55; }
+    .status { margin:26px 0 18px; padding:16px; border-radius:12px; background:#191b1e; border:1px solid #383c42; color:#e8ebef; }
+    button { width:100%; margin-top:12px; padding:14px 18px; border:0; border-radius:11px; background:var(--gold); color:#171717; font-weight:750; font-size:15px; cursor:pointer; }
+    button:hover { filter:brightness(1.08); box-shadow:0 0 25px #e9b93144; }
+    small { display:block; margin-top:22px; color:#858c96; }
+    code { display:none; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><div class="mark" aria-hidden="true"></div><h1>Licit <span>Search</span></h1></div>
+    <h2 id="title">Concluindo a conexão…</h2>
+    <p id="message">Aguarde enquanto retornamos ao aplicativo.</p>
+    <div class="status" id="status">Validando a resposta do Mercado Livre</div>
+    <button id="openApp" hidden>Abrir o Licit Search</button>
+    <small>Esta página não solicita nem armazena sua senha.</small>
+    <code id="technical"></code>
+  </main>
+  <script>
+    (() => {
+      const query = new URLSearchParams(location.search);
+      const allowed = new URLSearchParams();
+      for (const key of ['code', 'state', 'error', 'error_description']) {
+        if (query.has(key)) allowed.set(key, query.get(key));
+      }
+      const title = document.querySelector('#title');
+      const message = document.querySelector('#message');
+      const status = document.querySelector('#status');
+      const button = document.querySelector('#openApp');
+      const technical = document.querySelector('#technical');
+
+      if (allowed.has('error')) {
+        title.textContent = 'Conexão não concluída';
+        message.textContent = 'O Mercado Livre não autorizou a conexão. Volte ao Licit Search e tente novamente.';
+        status.textContent = allowed.get('error_description') || allowed.get('error');
+        return;
+      }
+
+      if (!allowed.has('code')) {
+        title.textContent = 'Página de retorno ativa';
+        message.textContent = 'Este endereço está pronto para receber a autorização do Mercado Livre.';
+        status.textContent = 'Configuração concluída';
+        return;
+      }
+
+      const appUrl = `licitsearch://oauth/callback?${allowed.toString()}`;
+      technical.textContent = allowed.toString();
+      title.textContent = 'Autorização recebida';
+      message.textContent = 'Se o aplicativo não abrir automaticamente, use o botão abaixo.';
+      status.textContent = 'Retorno recebido com sucesso';
+      button.hidden = false;
+      button.addEventListener('click', () => location.href = appUrl);
+      location.href = appUrl;
+    })();
+  </script>
+</body>
+</html>
